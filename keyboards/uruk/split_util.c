@@ -9,6 +9,7 @@
 #include "keyboard.h"
 #include "config.h"
 #include "timer.h"
+#include "pincontrol.h"
 
 #ifdef USE_I2C
 #  include "i2c.h"
@@ -19,19 +20,9 @@
 volatile bool isLeftHand = true;
 
 static void setup_handedness(void) {
-  // TODO: test pin for handedness
-
-
-  #ifdef EE_HANDS
-    isLeftHand = eeprom_read_byte(EECONFIG_HANDEDNESS);
-  #else
-    // I2C_MASTER_RIGHT is deprecated, use MASTER_RIGHT instead, since this works for both serial and i2c
-    #if defined(I2C_MASTER_RIGHT) || defined(MASTER_RIGHT)
-      isLeftHand = !has_usb();
-    #else
-      isLeftHand = has_usb();
-    #endif
-  #endif
+  // Test D2 pin for handedness, if D2 is grounded, it's the right hand
+  pinMode(D2, PinDirectionInput);
+  isLeftHand = digitalRead(D2);
 }
 
 static void keyboard_master_setup(void) {
